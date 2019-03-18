@@ -47,7 +47,7 @@ def kayako():
     </tickets>
     """
     client.list_open_tickets.return_value = ElementTree.fromstring(tickets)
-    posts =     state = """<?xml version="1.0" encoding="UTF-8"?>
+    posts = """<?xml version="1.0" encoding="UTF-8"?>
     <tickets>
         <ticket id="277" flagtype="5">
             <displayid><![CDATA[CYA-293-12345]]></displayid>
@@ -238,3 +238,93 @@ def test_check_ticket_handler(
             }
         ]
     )
+
+
+def test_diff_new_posts_empty_state():
+    posts = """<?xml version="1.0" encoding="UTF-8"?>
+    <tickets>
+        <ticket>
+            <posts>
+                <post>
+                    <ticketpostid><![CDATA[1496]]></ticketpostid>
+                    <dateline><![CDATA[1552419863]]></dateline>
+                </post>
+                <post>
+                    <ticketpostid><![CDATA[1495]]></ticketpostid>
+                    <dateline><![CDATA[1552418863]]></dateline>
+                </post>
+                <post>
+                    <ticketpostid><![CDATA[1488]]></ticketpostid>
+                    <dateline><![CDATA[1552317114]]></dateline>
+                </post>
+            </posts>
+        </ticket>
+    </tickets>
+    """
+    diff = app.diff_new_posts(ElementTree.fromstring(posts), None)
+    diff_xml = [ElementTree.tostring(el, encoding="unicode") for el in diff]
+    assert diff_xml == [
+        '<post>\n'
+        '                    <ticketpostid>1488</ticketpostid>\n'
+        '                    <dateline>1552317114</dateline>\n'
+        '                </post>\n'
+        '            ',
+        '<post>\n'
+        '                    <ticketpostid>1495</ticketpostid>\n'
+        '                    <dateline>1552418863</dateline>\n'
+        '                </post>\n'
+        '                ',
+        '<post>\n'
+        '                    <ticketpostid>1496</ticketpostid>\n'
+        '                    <dateline>1552419863</dateline>\n'
+        '                </post>\n'
+        '                '
+    ]
+
+def test_diff_new_posts_empty_many_items():
+    posts = """<?xml version="1.0" encoding="UTF-8"?>
+    <tickets>
+        <ticket>
+            <posts>
+                <post>
+                    <ticketpostid><![CDATA[1496]]></ticketpostid>
+                    <dateline><![CDATA[1552419863]]></dateline>
+                </post>
+                <post>
+                    <ticketpostid><![CDATA[1495]]></ticketpostid>
+                    <dateline><![CDATA[1552418863]]></dateline>
+                </post>
+                <post>
+                    <ticketpostid><![CDATA[1488]]></ticketpostid>
+                    <dateline><![CDATA[1552317114]]></dateline>
+                </post>
+            </posts>
+        </ticket>
+    </tickets>
+    """
+    state = """<?xml version="1.0" encoding="UTF-8"?>
+    <tickets>
+        <ticket>
+            <posts>
+                <post>
+                    <ticketpostid><![CDATA[1488]]></ticketpostid>
+                    <dateline><![CDATA[1552317114]]></dateline>
+                </post>
+            </posts>
+        </ticket>
+    </tickets>
+    """
+    diff = app.diff_new_posts(ElementTree.fromstring(posts), ElementTree.fromstring(state))
+    diff_xml = [ElementTree.tostring(el, encoding="unicode") for el in diff]
+    assert diff_xml ==  [
+        '<post>\n'
+        '                    <ticketpostid>1495</ticketpostid>\n'
+        '                    <dateline>1552418863</dateline>\n'
+        '                </post>\n'
+        '                ',
+        '<post>\n'
+        '                    <ticketpostid>1496</ticketpostid>\n'
+        '                    <dateline>1552419863</dateline>\n'
+        '                </post>\n'
+        '                '
+    ]
