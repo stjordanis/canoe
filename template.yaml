@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+    canoe
+
+    Send kayako ticket updates to Slack
+
+Parameters:
+
+  KayakoAPIURL:
+    Type: String
+
+  KayakoAPIKey:
+    Type: String
+    NoEcho: true
+
+  KayakoSecretKey:
+    Type: String
+    NoEcho: true
+
+  RootProjectName:
+    Type: String
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+    ReservedConcurrentExecutions: 1
+
+
+Resources:
+
+  TicketsStateBucket:
+    Type: AWS::S3::Bucket
+
+  CheckDepartmentQueue:
+    Type: AWS::SQS::Queue
+
+  CheckTicketQueue:
+    Type: AWS::SQS::Queue
+
+  TicketsUpdatesQueue:
+    Type: AWS::SQS::Queue
+
+  SeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: canoe/build/
+      Handler: app.seed_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
+          CANOE_KAYAKO_API_KEY: !Ref KayakoAPIKey
+          CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
+          CANOE_ROOT_PROJECT_NAME: !Ref RootProjectName
+          CANOE_CHECK_DEPARTMENT_QUEUE_URL: !Ref CheckDepartmentQueue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt CheckDepartmentQueue.QueueName
+      Events:
+        SeedTimer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Input: >-
+              {"type": "seed"}
+
+  DistributeDepartmentsTicketsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: canoe/build/
+      Handler: app.distribute_departments_tickets_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
+          CANOE_KAYAKO_API_KEY: !Ref KayakoAPIKey
+          CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
+          CANOE_CHECK_DEPARTMENT_QUEUE_URL: !Ref CheckDepartmentQueue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt CheckTicketQueue.QueueName
+      Events:
+        CheckDepartmentEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt CheckDepartmentQueue.Arn
+            BatchSize: 1
+
+  CheckTicketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: canoe/build/
+      Handler: app.check_ticket_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
+          CANOE_KAYAKO_API_KEY: !Ref KayakoAPIKey
+          CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
+          CANOE_TICKETS_UPDATES_QUEUE_URL: !Ref TicketsUpdatesQueue
+          CANOE_TICKETS_STATE_BUCKET: !Ref TicketsStateBucket
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt TicketsUpdatesQueue.QueueName
+        - S3CrudPolicy:
+            BucketName: !Ref TicketsStateBucket
+      Events:
+        CheckTicketEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt CheckTicketQueue.Arn
+            BatchSize: 1
+
+Outputs:
+  FirstFunction:
+    Description: "SeedFunction"
+    Value: !GetAtt SeedFunction.Arn
