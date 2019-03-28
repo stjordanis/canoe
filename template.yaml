@@ -139,6 +139,10 @@ Resources:
       ReservedConcurrentExecutions: 1
       Environment:
         Variables:
+          # TODO: remove kayako URLs
+          CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
+          CANOE_KAYAKO_API_KEY: !Ref KayakoAPIKey
+          CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
           CANOE_SLACK_API_TOKEN: !Ref SlackAPIToken
           CANOE_SLACK_CHANNEL_ID: !Ref SlackChannelId
       Events:
