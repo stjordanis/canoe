@@ -4,6 +4,9 @@ import os
 import logging
 import sys
 import bisect
+import itertools
+
+from slackclient import SlackClient
 
 from botocore.exceptions import ClientError
 from xml.etree import ElementTree
@@ -12,6 +15,8 @@ CWD = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(CWD, 'lib'))
 
 from kayako import Kayako
+
+boto3.set_stream_logger('', logging.DEBUG)
 
 # Global variables are reused across execution contexts (if available)
 session = boto3.Session()
@@ -23,6 +28,9 @@ logger.setLevel(logging.DEBUG)
 kayako = Kayako(os.getenv('CANOE_KAYAKO_API_URL'),
                 os.getenv('CANOE_KAYAKO_API_KEY'),
                 os.getenv('CANOE_KAYAKO_SECRET_KEY'))
+
+SLACK_CHANNEL_ID = os.getenv('CANOE_SLACK_CHANNEL_ID')
+slack = SlackClient(os.getenv('CANOE_SLACK_API_TOKEN'))
 
 def seed_handler(event, context):
     if event.get('type', None) != 'seed':

@@ -115,7 +115,26 @@ Resources:
             Queue: !GetAtt CheckTicketQueue.Arn
             BatchSize: 1
 
+  UpdatesNotificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: canoe/build/
+      Handler: app.updates_notifications_handler
+      Runtime: python3.7
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          CANOE_SLACK_API_TOKEN: !Ref SlackAPIToken
+          CANOE_SLACK_CHANNEL_ID: !Ref SlackChannelId
+      Events:
+        TicketsUpdatesEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TicketsUpdatesQueue.Arn
+            BatchSize: 1
+
+
 Outputs:
-  FirstFunction:
+  SeedFunction:
     Description: "SeedFunction"
     Value: !GetAtt SeedFunction.Arn

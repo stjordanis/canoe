@@ -104,6 +104,12 @@ def kayako():
     return client
 
 @pytest.fixture()
+def slack(monkeypatch):
+    client = Mock()
+    monkeypatch.setattr('canoe.app.slack', client)
+    return client
+
+@pytest.fixture()
 def seed_event():
     return {'type': 'seed'}
 
@@ -224,17 +230,8 @@ def test_check_ticket_handler(
     queue.send_messages.assert_called_with(
         Entries=[
             {
-                'type': 'new_post',
-                'object': {
-                    'dateline': '1552419863',
-                    'fullname': 'Sender FullName (customer)',
-                    'email': 'customer-email@customer.com',
-                    'contents': 'Thanks mate\n\n                    ',
-                    'displayid': 'CYA-293-12345',
-                    'userorganization': 'Customer Name',
-                    'subject': 'Mayday Mayday',
-                    'ticket_id': '273'
-                }
+                'Id': '0',
+                'MessageBody': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'
             }
         ]
     )
@@ -328,3 +325,20 @@ def test_diff_new_posts_empty_many_items():
         '                </post>\n'
         '                '
     ]
+
+@pytest.fixture()
+def updates_event():
+    return {
+        'Records': [
+            {
+                'body': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'
+            }
+        ]
+    }
+
+def test_updates_notifications_handler(monkeypatch, slack, updates_event, context):
+    app.updates_notifications_handler(updates_event, context)
+    slack.api_call.assert_called_with(
+        'chat.postMessage',
+        channel='PROJECTID',
+        text='[CYA-293-12345]: Mayday Mayday\nSender FullName (customer) left a comment on a ticket')
