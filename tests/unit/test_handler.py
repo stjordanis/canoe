@@ -313,7 +313,7 @@ def test_diff_new_posts_empty_many_items():
     """
     diff = app.diff_new_posts(ElementTree.fromstring(posts), ElementTree.fromstring(state))
     diff_xml = [ElementTree.tostring(el, encoding="unicode") for el in diff]
-    assert diff_xml ==  [
+    assert diff_xml == [
         '<post>\n'
         '                    <ticketpostid>1495</ticketpostid>\n'
         '                    <dateline>1552418863</dateline>\n'

@@ -42,13 +42,18 @@ def seed_handler(event, context):
     queue_url = os.getenv('CANOE_CHECK_DEPARTMENT_QUEUE_URL')
     sqs = session.resource('sqs')
     queue = sqs.Queue(queue_url)
-    messages = list(sqs_messages(dep_ids))
+    messages = sqs_messages(dep_ids)
     if not messages:
         logger.warning('no messages to send')
         return
 
-    queue.send_messages(Entries=messages)
+    send_messages(queue, messages)
 
+def send_messages(queue, items, batch_size=10):
+    iter_items = [iter(items)] * batch_size
+    for batch in itertools.zip_longest(*iter_items, fillvalue=None):
+        batch = list(filter(None, batch))
+        queue.send_messages(Entries=batch)
 
 def distribute_departments_tickets_handler(event, context):
     ticket_ids = []
@@ -64,8 +69,8 @@ def distribute_departments_tickets_handler(event, context):
     queue_url = os.getenv('CANOE_CHECK_TICKET_QUEUE_URL')
     sqs = session.resource('sqs')
     queue = sqs.Queue(queue_url)
-    messages = list(check_ticket_messages(ticket_ids))
-    queue.send_messages(Entries=messages)
+    messages = check_ticket_messages(ticket_ids)
+    send_messages(queue, messages)
 
 def list_children_department_ids(kayako, project_name):
     departments = kayako.list_departments()
@@ -86,13 +91,30 @@ def check_ticket_handler(event, context):
         new_posts = diff_new_posts(ticket, state)
         updates = ticket_updates(ticket_id, ticket, new_posts)
         tickets_updates.extend(updates)
-        save_ticket_state(ticket_id, ticket)
+        if updates:
+            save_ticket_state(ticket_id, ticket)
 
-    queue_url = os.getenv('CANOE_TICKETS_UPDATES_QUEUE_URL')
-    sqs = session.resource('sqs')
-    queue = sqs.Queue(queue_url)
-    messages = list(tickets_updates_messages(tickets_updates))
-    queue.send_messages(Entries=messages)
+    if not is_in_learning_mode():
+        queue_url = os.getenv('CANOE_TICKETS_UPDATES_QUEUE_URL')
+        sqs = session.resource('sqs')
+        queue = sqs.Queue(queue_url)
+        messages = tickets_updates_messages(tickets_updates)
+        send_messages(queue, messages)
+
+
+def is_in_learning_mode():
+    return os.getenv('CANOE_LEARNING_MODE') == 'true'
+
+
+def updates_notifications_handler(event, context):
+    for record in event['Records']:
+        body = json.loads(record['body'])
+        if body['type'] == 'new_post':
+            tmpl = ('[{displayid}]: {subject}\n'
+                    '{fullname} left a comment on a ticket')
+            message = tmpl.format(**body['object'])
+            slack.api_call(
+                'chat.postMessage', channel=SLACK_CHANNEL_ID, text=message)
 
 
 def save_ticket_state(ticket_id, ticket):
@@ -149,12 +171,8 @@ def read_ticket_state(ticket_id):
     try:
         s3_object = s3.get_object(Bucket=bucket, Key=key)
         return s3_object['Body']
-    except ClientError as client_err:
-        error = client_err.get('Error', {})
-        if error.get('Code', None) == 'NoSuchKey':
-            logger.info(f'No state found {bucket}/{key}')
-            return
-        raise err
+    except s3.exceptions.NoSuchKey:
+        logger.info(f'No state found {bucket}/{key}')
 
 
 def ticket_state_key(ticket_id):
@@ -166,22 +184,30 @@ def tickets_state_bucket():
 
 
 def sqs_messages(department_ids):
-    for dep_id in department_ids:
-        yield {
+    return [
+        {
             'Id': dep_id,
             'MessageBody': json.dumps({'department_id': dep_id})
-        }
+        } for dep_id in department_ids
+    ]
 
 def check_ticket_messages(ticket_ids):
-    for ticket_id in ticket_ids:
-        yield {
+    return [
+        {
             'Id': ticket_id,
             'MessageBody': json.dumps({'ticket_id': ticket_id})
         }
+        for ticket_id in ticket_ids
+    ]
 
 def tickets_updates_messages(updates):
-    for update in updates:
-        yield {
-            'type': 'new_post',
-            'object': update
+    return [
+        {
+            'Id': str(index),
+            'MessageBody': json.dumps({
+                'type': 'new_post',
+                'object': update
+            })
         }
+        for index, update in enumerate(updates)
+    ]

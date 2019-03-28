@@ -19,15 +19,26 @@ Parameters:
     Type: String
     NoEcho: true
 
+  SlackAPIToken:
+    Type: String
+    NoEcho: true
+
+  SlackChannelId:
+    Type: String
+    NoEcho: true
+
   RootProjectName:
     Type: String
+
+  LearningMode:
+    Type: String
+    Default: 'false'
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 5
+    Timeout: 10
     MemorySize: 128
-    ReservedConcurrentExecutions: 1
 
 
 Resources:
@@ -50,6 +61,7 @@ Resources:
       CodeUri: canoe/build/
       Handler: app.seed_handler
       Runtime: python3.7
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
@@ -64,7 +76,7 @@ Resources:
         SeedTimer:
           Type: Schedule
           Properties:
-            Schedule: rate(1 minute)
+            Schedule: rate(5 minutes)
             Input: >-
               {"type": "seed"}
 
@@ -74,12 +86,13 @@ Resources:
       CodeUri: canoe/build/
       Handler: app.distribute_departments_tickets_handler
       Runtime: python3.7
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
           CANOE_KAYAKO_API_KEY: !Ref KayakoAPIKey
           CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
-          CANOE_CHECK_DEPARTMENT_QUEUE_URL: !Ref CheckDepartmentQueue
+          CANOE_CHECK_TICKET_QUEUE_URL: !Ref CheckTicketQueue
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !GetAtt CheckTicketQueue.QueueName
@@ -96,6 +109,7 @@ Resources:
       CodeUri: canoe/build/
       Handler: app.check_ticket_handler
       Runtime: python3.7
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           CANOE_KAYAKO_API_URL: !Ref KayakoAPIURL
@@ -103,6 +117,7 @@ Resources:
           CANOE_KAYAKO_SECRET_KEY: !Ref KayakoSecretKey
           CANOE_TICKETS_UPDATES_QUEUE_URL: !Ref TicketsUpdatesQueue
           CANOE_TICKETS_STATE_BUCKET: !Ref TicketsStateBucket
+          CANOE_LEARNING_MODE: !Ref LearningMode
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !GetAtt TicketsUpdatesQueue.QueueName
