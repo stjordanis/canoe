@@ -16,14 +16,14 @@ sys.path.insert(0, os.path.join(CWD, 'lib'))
 
 from kayako import Kayako
 
-boto3.set_stream_logger('', logging.DEBUG)
+LOG_LEVEL = logging.INFO
+boto3.set_stream_logger('', LOG_LEVEL)
+logger = logging.getLogger()
+logger.setLevel(LOG_LEVEL)
 
 # Global variables are reused across execution contexts (if available)
 session = boto3.Session()
 s3 = session.client('s3')
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
 
 kayako = Kayako(os.getenv('CANOE_KAYAKO_API_URL'),
                 os.getenv('CANOE_KAYAKO_API_KEY'),
