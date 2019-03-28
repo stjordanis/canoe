@@ -71,6 +71,7 @@ test: ##=> Run pytest
 	CANOE_KAYAKO_SECRET_KEY=kayako_secret_key \
 	CANOE_CHECK_DEPARTMENT_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/1234567890/department-queue \
 	CANOE_CHECK_TICKET_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/1234567890/tickets-queue \
+	CANOE_SLACK_CHANNEL_ID=PROJECTID \
 	$(PIPENV) run python -m pytest --cov . --cov-report term-missing --cov-fail-under $(CODE_COVERAGE) tests/ -vvv --pdb)
 
 #############
