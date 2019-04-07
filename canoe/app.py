@@ -110,11 +110,38 @@ def updates_notifications_handler(event, context):
     for record in event['Records']:
         body = json.loads(record['body'])
         if body['type'] == 'new_post':
-            tmpl = ('[{displayid}]: {subject}\n'
-                    '{fullname} left a comment on a ticket')
-            message = tmpl.format(**body['object'])
+            new_post = body['object']
+            text = message_text(new_post)
+            blocks = message_blocks(new_post)
             slack.api_call(
-                'chat.postMessage', channel=SLACK_CHANNEL_ID, text=message)
+                'chat.postMessage', channel=SLACK_CHANNEL_ID,
+                text=text, blocks=blocks)
+
+def message_text(new_post):
+    tmpl = ('[{displayid}]: {subject}\n'
+            '{fullname} left a comment on a ticket')
+    return tmpl.format(**new_post)
+
+def message_blocks(new_post):
+    portal_uri = os.getenv('CANOE_KAYAKO_UI_URL')
+    ticket_link = '{portal_uri}?/Tickets/Ticket/View/{ticket_id}'.format(
+        portal_uri=portal_uri, **new_post)
+    return [
+	{
+	    'type': 'section',
+	    'text': {
+		'type': 'mrkdwn',
+		'text': '<{link}|[{displayid}]: {subject}>'.format(link=ticket_link, **new_post)
+	    }
+	},
+	{
+	    'type': 'section',
+	    'text': {
+		'type': 'mrkdwn',
+		'text': '{fullname} left a comment on a ticket'.format(**new_post)
+	    }
+	}
+    ]
 
 
 def save_ticket_state(ticket_id, ticket):

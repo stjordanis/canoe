@@ -66,6 +66,7 @@ run: ##=> Run SAM Local API GW and can optionally run new containers connected t
 # TODO: move env variables to pytest
 test: ##=> Run pytest
 	@(AWS_XRAY_CONTEXT_MISSING=LOG_ERROR \
+	CANOE_KAYAKO_UI_URL=https://kayako-srv.com \
 	CANOE_KAYAKO_API_URL=https://kayako-srv.com \
 	CANOE_KAYAKO_API_KEY=kayako_apikey \
 	CANOE_KAYAKO_SECRET_KEY=kayako_secret_key \

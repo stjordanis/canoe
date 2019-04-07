@@ -341,4 +341,21 @@ def test_updates_notifications_handler(monkeypatch, slack, updates_event, contex
     slack.api_call.assert_called_with(
         'chat.postMessage',
         channel='PROJECTID',
-        text='[CYA-293-12345]: Mayday Mayday\nSender FullName (customer) left a comment on a ticket')
+        text='[CYA-293-12345]: Mayday Mayday\nSender FullName (customer) left a comment on a ticket',
+        blocks=[
+            {
+                'type': 'section',
+                'text': {
+                    'type': 'mrkdwn',
+                    'text': '<https://kayako-srv.com?/Tickets/Ticket/View/273|[CYA-293-12345]: Mayday Mayday>'
+                }
+            },
+            {
+                'type': 'section',
+                'text': {
+                    'type': 'mrkdwn',
+                    'text': 'Sender FullName (customer) left a comment on a ticket'
+                }
+            }
+        ]
+    )
