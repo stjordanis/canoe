@@ -89,7 +89,7 @@ def check_ticket_handler(event, context):
         state = get_ticket_state(ticket_id)
         ticket = kayako.get_ticket(ticket_id)
         new_posts = diff_new_posts(ticket, state)
-        updates = ticket_updates(ticket_id, ticket, new_posts)
+        updates = list(ticket_updates(ticket_id, ticket, new_posts))
         tickets_updates.extend(updates)
         if updates:
             save_ticket_state(ticket_id, ticket)
@@ -215,7 +215,8 @@ def sqs_messages(department_ids):
         {
             'Id': dep_id,
             'MessageBody': json.dumps({'department_id': dep_id})
-        } for dep_id in department_ids
+        }
+        for dep_id in department_ids
     ]
 
 def check_ticket_messages(ticket_ids):
