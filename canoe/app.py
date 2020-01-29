@@ -134,20 +134,20 @@ def message_blocks(new_post):
     ticket_link = '{portal_uri}?/Tickets/Ticket/View/{ticket_id}'.format(
         portal_uri=portal_uri, **new_post)
     return [
-	{
-	    'type': 'section',
-	    'text': {
-		'type': 'mrkdwn',
-		'text': '<{link}|[{displayid}]: {subject}>'.format(link=ticket_link, **new_post)
-	    }
-	},
-	{
-	    'type': 'section',
-	    'text': {
-		'type': 'mrkdwn',
-		'text': '@here {fullname} left a comment on a ticket'.format(**new_post)
-	    }
-	}
+        {
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': '<{link}|[{displayid}]: {subject}>'.format(link=ticket_link, **new_post)
+            }
+        },
+        {
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': '@here {fullname} left a comment on a ticket'.format(**new_post)
+            }
+        }
     ]
 
 
