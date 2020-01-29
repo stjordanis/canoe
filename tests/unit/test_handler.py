@@ -1,9 +1,8 @@
 # coding: utf-8
 
-import json
 import io
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 import xml.etree.ElementTree as ElementTree
 
 
