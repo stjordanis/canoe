@@ -340,7 +340,7 @@ def test_updates_notifications_handler(monkeypatch, slack, updates_event, contex
     app.updates_notifications_handler(updates_event, context)
     slack.chat_postMessage.assert_called_with(
         channel='PROJECTID',
-        text='[CYA-293-12345]: Mayday Mayday\nSender FullName (customer) left a comment on a ticket',
+        text='[CYA-293-12345]: Mayday Mayday\n@here Sender FullName (customer) left a comment on a ticket',
         blocks=[
             {
                 'type': 'section',
@@ -353,7 +353,7 @@ def test_updates_notifications_handler(monkeypatch, slack, updates_event, contex
                 'type': 'section',
                 'text': {
                     'type': 'mrkdwn',
-                    'text': 'Sender FullName (customer) left a comment on a ticket'
+                    'text': '@here Sender FullName (customer) left a comment on a ticket'
                 }
             }
         ]

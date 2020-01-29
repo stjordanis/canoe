@@ -120,7 +120,7 @@ def updates_notifications_handler(event, context):
 
 def message_text(new_post):
     tmpl = ('[{displayid}]: {subject}\n'
-            '{fullname} left a comment on a ticket')
+            '@here {fullname} left a comment on a ticket')
     return tmpl.format(**new_post)
 
 def message_blocks(new_post):
@@ -139,7 +139,7 @@ def message_blocks(new_post):
 	    'type': 'section',
 	    'text': {
 		'type': 'mrkdwn',
-		'text': '{fullname} left a comment on a ticket'.format(**new_post)
+		'text': '@here {fullname} left a comment on a ticket'.format(**new_post)
 	    }
 	}
     ]
