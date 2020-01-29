@@ -239,7 +239,7 @@ def test_check_ticket_handler(
         Entries=[
             {
                 'Id': '0',
-                'MessageBody': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'
+                'MessageBody': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'  # noqa: E501
             }
         ]
     )
@@ -341,7 +341,7 @@ def updates_event():
     return {
         'Records': [
             {
-                'body': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'
+                'body': '{"type": "new_post", "object": {"dateline": "1552419863", "fullname": "Sender FullName (customer)", "email": "customer-email@customer.com", "contents": "Thanks mate\\n\\n                    ", "displayid": "CYA-293-12345", "userorganization": "Customer Name", "subject": "Mayday Mayday", "ticket_id": "273"}}'  # noqa: E501
             }
         ]
     }
