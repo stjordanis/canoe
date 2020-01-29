@@ -1,3 +1,5 @@
+![Python application](https://github.com/velimir/canoe/workflows/Python%20application/badge.svg)
+
 # canoe
 
 Send kayako ticket updates to Slack
