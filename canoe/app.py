@@ -8,7 +8,6 @@ import itertools
 
 import slack
 
-from botocore.exceptions import ClientError
 from xml.etree import ElementTree
 
 CWD = os.path.dirname(os.path.realpath(__file__))
