@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 CWD = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(CWD, 'lib'))
 
-from kayako import Kayako
+from kayako import Kayako       # noqa: E402
 
 LOG_LEVEL = logging.INFO
 boto3.set_stream_logger('', LOG_LEVEL)
