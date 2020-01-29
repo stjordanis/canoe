@@ -6,7 +6,7 @@ import sys
 import bisect
 import itertools
 
-from slackclient import SlackClient
+import slack
 
 from botocore.exceptions import ClientError
 from xml.etree import ElementTree
@@ -30,7 +30,7 @@ kayako = Kayako(os.getenv('CANOE_KAYAKO_API_URL'),
                 os.getenv('CANOE_KAYAKO_SECRET_KEY'))
 
 SLACK_CHANNEL_ID = os.getenv('CANOE_SLACK_CHANNEL_ID')
-slack = SlackClient(os.getenv('CANOE_SLACK_API_TOKEN'))
+slack_client = slack.WebClient(token=os.getenv('CANOE_SLACK_API_TOKEN'))
 
 def seed_handler(event, context):
     if event.get('type', None) != 'seed':
@@ -113,9 +113,10 @@ def updates_notifications_handler(event, context):
             new_post = body['object']
             text = message_text(new_post)
             blocks = message_blocks(new_post)
-            slack.api_call(
-                'chat.postMessage', channel=SLACK_CHANNEL_ID,
-                text=text, blocks=blocks)
+            slack_client.chat_postMessage(
+                channel=SLACK_CHANNEL_ID,
+                text=text,
+                blocks=blocks)
 
 def message_text(new_post):
     tmpl = ('[{displayid}]: {subject}\n'
