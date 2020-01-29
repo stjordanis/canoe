@@ -106,7 +106,7 @@ def kayako():
 @pytest.fixture()
 def slack(monkeypatch):
     client = Mock()
-    monkeypatch.setattr('canoe.app.slack', client)
+    monkeypatch.setattr('canoe.app.slack_client', client)
     return client
 
 @pytest.fixture()
@@ -338,8 +338,7 @@ def updates_event():
 
 def test_updates_notifications_handler(monkeypatch, slack, updates_event, context):
     app.updates_notifications_handler(updates_event, context)
-    slack.api_call.assert_called_with(
-        'chat.postMessage',
+    slack.chat_postMessage.assert_called_with(
         channel='PROJECTID',
         text='[CYA-293-12345]: Mayday Mayday\nSender FullName (customer) left a comment on a ticket',
         blocks=[
