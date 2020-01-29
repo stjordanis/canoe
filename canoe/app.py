@@ -181,8 +181,9 @@ def ticket_updates(ticket_id, ticket, posts):
 
 
 def extract_fields(element, fields, path_tmpl=None):
-    path_fn = lambda p: path_tmpl.format(p) if path_tmpl else p
-    return {field: element.find(path_fn(field)).text for field in fields}
+    def format_path(p):
+        return path_tmpl.format(p) if path_tmpl else p
+    return {field: element.find(format_path(field)).text for field in fields}
 
 
 def latest_post_dateline(state):
