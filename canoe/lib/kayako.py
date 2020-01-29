@@ -1,5 +1,4 @@
 import base64
-import hashlib
 import hmac
 import random
 import requests
