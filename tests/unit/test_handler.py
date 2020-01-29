@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ElementTree
 
 from canoe import app
 
+
 @pytest.fixture()
 def kayako():
     client = Mock()
@@ -103,23 +104,28 @@ def kayako():
     client.get_ticket.return_value = ElementTree.fromstring(posts)
     return client
 
+
 @pytest.fixture()
 def slack(monkeypatch):
     client = Mock()
     monkeypatch.setattr('canoe.app.slack_client', client)
     return client
 
+
 @pytest.fixture()
 def seed_event():
     return {'type': 'seed'}
+
 
 @pytest.fixture()
 def context():
     return {}
 
+
 def test_list_children_department_ids(kayako):
     ids = app.list_children_department_ids(kayako, 'Project Name')
     assert ['2', '3', '4'] == list(ids)
+
 
 def test_seed_handler(seed_event, context, kayako, monkeypatch):
     session = Mock()
@@ -137,6 +143,7 @@ def test_seed_handler(seed_event, context, kayako, monkeypatch):
         ]
     )
 
+
 @pytest.fixture()
 def sqs_departments_event():
     return {
@@ -146,6 +153,7 @@ def sqs_departments_event():
             }
         ]
     }
+
 
 def test_distribute_departments_tickets_handler(
         sqs_departments_event, context, kayako, monkeypatch):
@@ -172,6 +180,7 @@ def sqs_check_tickets_event():
             }
         ]
     }
+
 
 def test_check_ticket_handler(
         sqs_check_tickets_event, context, kayako, monkeypatch):
@@ -278,6 +287,7 @@ def test_diff_new_posts_empty_state():
         '                '
     ]
 
+
 def test_diff_new_posts_empty_many_items():
     posts = """<?xml version="1.0" encoding="UTF-8"?>
     <tickets>
@@ -326,6 +336,7 @@ def test_diff_new_posts_empty_many_items():
         '                '
     ]
 
+
 @pytest.fixture()
 def updates_event():
     return {
@@ -335,6 +346,7 @@ def updates_event():
             }
         ]
     }
+
 
 def test_updates_notifications_handler(monkeypatch, slack, updates_event, context):
     app.updates_notifications_handler(updates_event, context)

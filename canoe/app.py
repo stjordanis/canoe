@@ -31,6 +31,7 @@ kayako = Kayako(os.getenv('CANOE_KAYAKO_API_URL'),
 SLACK_CHANNEL_ID = os.getenv('CANOE_SLACK_CHANNEL_ID')
 slack_client = slack.WebClient(token=os.getenv('CANOE_SLACK_API_TOKEN'))
 
+
 def seed_handler(event, context):
     if event.get('type', None) != 'seed':
         logger.warning(f'unexpected event: {event}')
@@ -48,11 +49,13 @@ def seed_handler(event, context):
 
     send_messages(queue, messages)
 
+
 def send_messages(queue, items, batch_size=10):
     iter_items = [iter(items)] * batch_size
     for batch in itertools.zip_longest(*iter_items, fillvalue=None):
         batch = list(filter(None, batch))
         queue.send_messages(Entries=batch)
+
 
 def distribute_departments_tickets_handler(event, context):
     ticket_ids = []
@@ -71,6 +74,7 @@ def distribute_departments_tickets_handler(event, context):
     messages = check_ticket_messages(ticket_ids)
     send_messages(queue, messages)
 
+
 def list_children_department_ids(kayako, project_name):
     departments = kayako.list_departments()
     parent_el_ids = departments.findall(f".//department/title[.='{project_name}']../id")
@@ -78,6 +82,7 @@ def list_children_department_ids(kayako, project_name):
         xpath = f".//department/parentdepartmentid[.='{parent_el_id.text}']../id"
         for dep_id_el in departments.findall(xpath):
             yield dep_id_el.text
+
 
 def check_ticket_handler(event, context):
     tickets_updates = []
@@ -117,10 +122,12 @@ def updates_notifications_handler(event, context):
                 text=text,
                 blocks=blocks)
 
+
 def message_text(new_post):
     tmpl = ('[{displayid}]: {subject}\n'
             '@here {fullname} left a comment on a ticket')
     return tmpl.format(**new_post)
+
 
 def message_blocks(new_post):
     portal_uri = os.getenv('CANOE_KAYAKO_UI_URL')
@@ -185,6 +192,7 @@ def latest_post_dateline(state):
     dateline_els = state.findall('.//post/dateline')
     return max([int(dl.text) for dl in dateline_els])
 
+
 def get_ticket_state(ticket_id):
     state = read_ticket_state(ticket_id)
     if state:
@@ -219,6 +227,7 @@ def sqs_messages(department_ids):
         for dep_id in department_ids
     ]
 
+
 def check_ticket_messages(ticket_ids):
     return [
         {
@@ -227,6 +236,7 @@ def check_ticket_messages(ticket_ids):
         }
         for ticket_id in ticket_ids
     ]
+
 
 def tickets_updates_messages(updates):
     return [
