@@ -158,4 +158,11 @@ aws cloudformation describe-stacks \
     --stack-name canoe --query 'Stacks[].Outputs'
 ```
 
-## Running 
+## Adding it to Slack
+
+
+* Create Slack Application Integration
+* Add Oauth Scope chat:write 
+* Copy generated API token 
+* Change API token for UpdatesNotificationsFunction on Amazon Lambda / London function
+* Invite the new app to the room you want to post
