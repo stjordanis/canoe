@@ -9,5 +9,5 @@ aws --region eu-west-2 cloudformation package \
 aws --region eu-west-2 cloudformation deploy \
     --template-file $PWD/packaged.yaml \
     --stack-name $STACK_NAME \
-    --parameter-overrides $PWD/env.json \
+    --parameter-overrides "file://$PWD/env.json" \
     --capabilities CAPABILITY_IAM
