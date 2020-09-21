@@ -38,7 +38,7 @@ def seed_handler(event, context):
         return
 
     project_name = os.getenv('CANOE_ROOT_PROJECT_NAME')
-    dep_ids = list_children_department_ids(kayako, project_name)
+    dep_ids = list_relevant_department_ids(kayako, project_name)
     queue_url = os.getenv('CANOE_CHECK_DEPARTMENT_QUEUE_URL')
     sqs = session.resource('sqs')
     queue = sqs.Queue(queue_url)
@@ -75,10 +75,12 @@ def distribute_departments_tickets_handler(event, context):
     send_messages(queue, messages)
 
 
-def list_children_department_ids(kayako, project_name):
+# we are including the top level department and sub departments as well
+def list_relevant_department_ids(kayako, project_name):
     departments = kayako.list_departments()
     parent_el_ids = departments.findall(f".//department/title[.='{project_name}']../id")
     for parent_el_id in parent_el_ids:
+        yield parent_el_id.text
         xpath = f".//department/parentdepartmentid[.='{parent_el_id.text}']../id"
         for dep_id_el in departments.findall(xpath):
             yield dep_id_el.text
