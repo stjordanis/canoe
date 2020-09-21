@@ -1,12 +1,16 @@
 # coding: utf-8
 
 import io
+import os
+import sys
 import pytest
 from unittest.mock import Mock
 import xml.etree.ElementTree as ElementTree
 
+CWD = os.path.dirname(os.path.realpath(__file__)) + "/../../"
+sys.path.insert(0, os.path.join(CWD, ''))
 
-from canoe import app
+from canoe import app # noqa
 
 
 @pytest.fixture()
@@ -32,6 +36,10 @@ def kayako():
             <id><![CDATA[4]]></id>
             <title><![CDATA[Customer 4]]></title>
             <parentdepartmentid><![CDATA[1]]></parentdepartmentid>
+        </department>
+        <department>
+            <id><![CDATA[5]]></id>
+            <title><![CDATA[Other Main Department]]></title>
         </department>
     </departments>
     """
@@ -121,9 +129,9 @@ def context():
     return {}
 
 
-def test_list_children_department_ids(kayako):
-    ids = app.list_children_department_ids(kayako, 'Project Name')
-    assert ['2', '3', '4'] == list(ids)
+def test_list_relevant_department_ids(kayako):
+    ids = app.list_relevant_department_ids(kayako, 'Project Name')
+    assert ['1', '2', '3', '4'] == list(ids)
 
 
 def test_seed_handler(seed_event, context, kayako, monkeypatch):
@@ -136,6 +144,7 @@ def test_seed_handler(seed_event, context, kayako, monkeypatch):
     app.seed_handler(seed_event, context)
     queue.send_messages.assert_called_with(
         Entries=[
+            {'Id': '1', 'MessageBody': '{"department_id": "1"}'},
             {'Id': '2', 'MessageBody': '{"department_id": "2"}'},
             {'Id': '3', 'MessageBody': '{"department_id": "3"}'},
             {'Id': '4', 'MessageBody': '{"department_id": "4"}'}

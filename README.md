@@ -4,6 +4,22 @@
 
 Send kayako ticket updates to Slack
 
+## Development
+
+Use it with pipenv. `pytest` should be installed in the virtualenv. See `build.sh` for a full
+deployment to aws. 
+
+See `env.json.sample` for required environment variables.
+
+## Running Tests
+
+1. Export all required environment variables
+2. `pipenv shell`
+3. Verify `pytest` is running from `pipenv`: `which pytest`, if no then uninstall `pytest` outside
+   of the `pipenv` by running `pip uninstall pytest`
+4. `pipenv install`
+5. `pytest` 
+
 ## Requirements
 
 * AWS CLI with Administrator permission
